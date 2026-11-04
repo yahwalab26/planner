@@ -2,6 +2,6 @@
 // 비워 두면 동기화 없이 이 기기의 브라우저에만 저장됩니다.
 // 주의: 'anon(공개)' 또는 'publishable' 키만 넣으세요. 'service_role' 또는 'secret' 키는 절대 넣지 마세요.
 window.PLANNER_CFG = {
-  url: '',   // 예: https://abcdefgh.supabase.co
-  key: ''    // 예: eyJhbGciOi... 로 시작하는 anon 키 (또는 sb_publishable_...)
+  url: 'https://cfipvxujhqciknzcrxrw.supabase.co',   // 예: https://abcdefgh.supabase.co
+  key: 'sb_publishable_VjGyjNvVpN52Pd4lqQyW_Q_yrkoJW8A'    // 예: eyJhbGciOi... 로 시작하는 anon 키 (또는 sb_publishable_...)
 };
