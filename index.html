@@ -90,7 +90,7 @@ const title=x.replace(/\s+/g,' ').trim()||v.replace(/[!！]/g,'').trim()||'할 �
 return{title,due,cat,pri,hit}}
 const qd=r=>r.due.slice(5).replace('-','/')+' ('+WD[pd(r.due).getDay()]+') · '+r.cat+(r.pri=='높음'?' · 중요':'');
 function qp(){const e=$('#qp'),i=$('#qi');if(!e||!i)return;const v=i.value.trim();e.textContent=v?qd(parseQ(v)):''}
-function qa(){const el=$('#qi'),v=el.value.trim();if(!v)return;const r=parseQ(v),id=nid();S.tasks.push({id,title:r.title,due:r.due,cat:r.cat,pri:r.pri,repeat:'없음',done:0});save();R();const n=$('#qi');if(n)n.focus();toast(qd(r)+' 추가했습니다',()=>{S.tasks=S.tasks.filter(t=>t.id!=id);save();R()})}
+function qa(){const el=$('#qi'),v=el.value.trim();if(!v)return;const r=parseQ(v),id=nid();el.value='';S.tasks.push({id,title:r.title,due:r.due,cat:r.cat,pri:r.pri,repeat:'없음',done:0});save();R();const n=$('#qi');if(n)n.focus();toast(qd(r)+' 추가했습니다',()=>{S.tasks=S.tasks.filter(t=>t.id!=id);save();R()})}
 function tg(id){const t=S.tasks.find(x=>x.id==id);t.done=t.done?0:1;if(t.done&&t.repeat&&t.repeat!='없음'){let n;if(t.repeat=='매주')n=add(t.due,7);else{const d=pd(t.due);if(t.repeat=='매년')d.setFullYear(d.getFullYear()+1);else d.setMonth(d.getMonth()+1);n=t.eom?ds(new Date(pd(t.due).getFullYear(),pd(t.due).getMonth()+2,0)):ds(d)}S.tasks.push({...t,id:nid(),due:n,done:0})}save();R()}
 const dots=(k,e)=>{const a=e.filter(x=>!(x.task&&x.task.done)&&!(x.bar&&x.mid)),g=e.filter(x=>x.bar&&x.mid).slice(0,1),all=[...a.map(x=>[x,0]),...g.map(x=>[x,1])],sh=all.slice(0,3),t0=today();
 return sh.map(([x,r])=>`<u class="${r?'rg':''}" style="--d:${x.task?(k<t0?'var(--rd)':'var(--mu)'):x.c}"></u>`).join('')+(all.length>3?'<i>+'+(all.length-3)+'</i>':'')};
@@ -107,7 +107,7 @@ const sync=()=>{const d=pd(sel);cm=new Date(d.getFullYear(),d.getMonth(),1)},set
 const mv=n=>{if(cv=='week'){sel=add(sel,7*n);sync()}else cm.setMonth(cm.getMonth()+n);R()},sd=k=>{sel=k;R()};
 let _tx=null,_ty=0;$('#m').addEventListener('touchstart',e=>{_tx=e.target.closest('.cg')?e.touches[0].clientX:null;_ty=e.touches[0].clientY},{passive:true});
 $('#m').addEventListener('touchend',e=>{if(_tx==null)return;const dx=e.changedTouches[0].clientX-_tx,dy=Math.abs(e.changedTouches[0].clientY-_ty);_tx=null;if(Math.abs(dx)>60&&dy<40)mv(dx<0?1:-1)},{passive:true});
-const ACT=['준비','신청','선정','자료전달','진행중'],DONE=['종료','정산','탈락'];let pq='',pfv='';
+const ACT=['준비','신청','선정','자료전달','진행중'],DONE=['종료','정산','탈락'];let pq='',pfv='',pdo=0;
 const nxp=p=>{const t0=today();return[['신청 시작',p.applyStart],['신청 마감',p.applyEnd],['작가 전달',p.authorDue],['진행 시작',p.start],['진행 종료',p.end]].filter(x=>x[1]&&x[1]>=t0).sort((a,b)=>a[1]<b[1]?-1:a[1]>b[1]?1:0)[0]||null},
 md=d=>d.slice(5).replace('-','/'),rg=(a,b)=>a||b?(a?md(a):'?')+'~'+(b?md(b):'?'):'';
 const pcard=p=>{const n=nxp(p),ap=rg(p.applyStart,p.applyEnd),pg=rg(p.start,p.end),hot=n&&diff(n[1])<=3&&diff(n[1])>=0;
@@ -116,7 +116,7 @@ const psort=(a,b)=>{const x=nxp(a),y=nxp(b),u=x?x[1]:'9',v=y?y[1]:'9';return u<v
 function plist(){const q=pq.trim().toLowerCase(),ok=p=>(!pfv||p.platform==pfv)&&(!q||(p.platform+' '+p.title+' '+(p.author||'')).toLowerCase().includes(q)),flt=!!(q||pfv),grp=s=>S.promos.filter(p=>p.status==s&&ok(p)).sort(psort);
 let h='',any=0;ACT.forEach(s=>{const l=grp(s);if(!l.length)return;any+=l.length;h+=`<div class=pg><h3>${s}<span class=n>${l.length}</span></h3>${l.map(pcard).join('')}</div>`});
 const dn=DONE.map(s=>[s,grp(s)]).filter(x=>x[1].length),dc=dn.reduce((a,x)=>a+x[1].length,0);any+=dc;
-if(dc)h+=`<details class="fs dn" ${flt?'open':''}><summary>종료·정산·탈락<span class=n>${dc}</span>${ico('chev-r',16)}</summary>`+dn.map(([s,l])=>`<div class=pg><h3>${s}<span class=n>${l.length}</span></h3>${l.map(pcard).join('')}</div>`).join('')+`</details>`;
+if(dc)h+=`<details class="fs dn" ${flt||pdo?'open':''}><summary onclick="pdo=!this.parentNode.open">종료·정산·탈락<span class=n>${dc}</span>${ico('chev-r',16)}</summary>`+dn.map(([s,l])=>`<div class=pg><h3>${s}<span class=n>${l.length}</span></h3>${l.map(pcard).join('')}</div>`).join('')+`</details>`;
 return any?h:(flt?'<p class=mu style="padding:18px 2px">일치하는 프로모션이 없습니다.</p>':'')}
 function pfl(){pq=$('#pq').value;$('#pl').innerHTML=plist()}
 function pfs(i){pfv=i<0?'':S.platforms[i].n;document.querySelectorAll('.chips .chip').forEach(b=>b.classList.toggle('on',b.dataset.i==i));$('#pl').innerHTML=plist()}
@@ -259,7 +259,13 @@ const IC={today:'<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>',promo:'<path d
 pen:'<path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19l-4 1z"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',send:'<path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/>',play:'<path d="M7 4.5v15l12-7.5-12-7.5z"/>',
 book:'<path d="M6 3h11a1 1 0 011 1v16H7a2 2 0 01-2-2V4a1 1 0 011-1z"/><path d="M5 18a2 2 0 012-2h11"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',repeat:'<path d="M4 11V9a3 3 0 013-3h11M15 3l3 3-3 3M20 13v2a3 3 0 01-3 3H6M9 21l-3-3 3-3"/>'};
 const ico=(n,z=20)=>`<svg class=ik width=${z} height=${z} viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=1.75 stroke-linecap=round stroke-linejoin=round aria-hidden=true>${IC[n]||(console.warn('아이콘 없음',n),'')}</svg>`;
-function R(){const ch=tab!==R.t;R.t=tab;$('#m').className=ch?'in':'';$('#m').innerHTML=({today:vToday,cal:vCal,promo:vPromo,sales:vSales,goal:vGoal,set:vSet})[tab]();$('#nv').innerHTML=[['today','홈'],['promo','프로모션'],['sales','매출'],['goal','목표'],['set','설정']].map(([k,l])=>`<button class="${k==tab?'on':''}" ${k==tab?'aria-current=page':''} onclick="tab='${k}';scrollTo(0,0);R()">${ico(k,22)}<span>${l}</span></button>`).join('')}
+function R(){const ch=tab!==R.t;R.t=tab;const m=$('#m'),y=scrollY,ae=document.activeElement,FQ='button,input,select,textarea,[tabindex="0"],summary',keep={};let fi=-1,fc=0;
+if(!ch){['qi','pq'].forEach(id=>{const e=$('#'+id);if(e)keep[id]=[e.value,e===ae,e.selectionStart,e.selectionEnd]});if(ae&&m.contains(ae)&&!ae.id){const L=[...m.querySelectorAll(FQ)];fi=L.indexOf(ae);fc=L.length}}
+m.className=ch?'in':'';m.innerHTML=({today:vToday,cal:vCal,promo:vPromo,sales:vSales,goal:vGoal,set:vSet})[tab]();
+if(!ch){for(const id in keep){const e=$('#'+id);if(!e)continue;e.value=keep[id][0];if(keep[id][1]){e.focus({preventScroll:true});try{e.setSelectionRange(keep[id][2],keep[id][3])}catch(_){}}}
+if(fi>=0){const L=[...m.querySelectorAll(FQ)];if(L.length==fc&&L[fi])L[fi].focus({preventScroll:true})}
+if($('#qi'))qp();scrollTo(0,y)}
+if(ch||!$('#nv').children.length)$('#nv').innerHTML=[['today','홈'],['promo','프로모션'],['sales','매출'],['goal','목표'],['set','설정']].map(([k,l])=>`<button class="${k==tab?'on':''}" ${k==tab?'aria-current=page':''} onclick="tab='${k}';scrollTo(0,0);R()">${ico(k,22)}<span>${l}</span></button>`).join('')}
 R();
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))addEventListener('load',()=>{try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}});
 </script></body></html>
