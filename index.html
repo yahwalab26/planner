@@ -45,6 +45,12 @@ details.fs{border-top:1px solid var(--bd)}details.fs summary{display:flex;align-
 #fm .fd label{margin-top:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two>.fd{min-width:0}.rq{margin-left:6px;font-size:11.5px;font-weight:500;color:var(--ac)}
 #fm .err{box-shadow:0 0 0 2px var(--rd)}
 #fm .row{position:sticky;bottom:0;margin:22px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);z-index:1}
+.pt{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.pt>b{flex:1;line-height:1.45}.stb{flex:none;padding:3px 12px;font-size:12px;font-weight:600}
+.nx{margin-top:8px;font-size:14px}.nx b{font-weight:650}.nx span{margin-left:6px;font-weight:700;font-variant-numeric:tabular-nums}.nx span.hot{color:var(--rd)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px 0 2px;padding:2px 0 6px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;padding:6px 12px;font-size:13px;font-weight:500;border-radius:999px;background:var(--cd);color:var(--tx);box-shadow:inset 0 0 0 1px var(--bd)}.chip.on{background:var(--tx);color:var(--bg);box-shadow:none}.chip i{width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--c)}
+h3 .n,summary .n{margin-left:4px;font-weight:500;color:var(--mu);font-variant-numeric:tabular-nums}.em{padding:30px 4px}.em p{margin:0 0 14px;color:var(--mu);line-height:1.6}
+.stg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.stg button{padding:10px 0}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(min-width:900px){body{padding-bottom:0;padding-left:224px}nav{top:0;bottom:auto;right:auto;width:224px;height:100%;flex-direction:column;border-top:0;border-right:1px solid var(--bd);padding:22px 12px;gap:4px;background:var(--cd);-webkit-backdrop-filter:none;backdrop-filter:none}nav::before{content:"출판사 플래너";font:650 17px 'Pretendard Variable',Pretendard,sans-serif;padding:4px 14px 20px}nav button{flex:none;flex-direction:row;gap:12px;padding:11px 14px;font-size:14.5px}nav button:hover{background:var(--bg)}nav button.on{background:var(--as)}#m{max-width:1000px;padding:30px 36px}.c{min-height:106px;padding:6px;text-align:left}.dt{display:none}.ct{display:block;font-style:normal;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:5px;margin-top:3px}#ov{align-items:center}#fm{border-radius:18px;max-width:560px}}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head><body><div id="m"></div><nav id="nv" aria-label="메뉴"></nav><div id="ts" role="status" aria-live="polite"></div><div id="ov"><div id="fm" role="dialog" aria-modal="true" aria-label="입력"></div></div>
@@ -56,7 +62,7 @@ let _n=Math.floor(Math.random()*100),SY=null,SYS='이 화면에서는 동기화�
 const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),pd=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)},add=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)},today=()=>ds(new Date()),diff=s=>Math.round((pd(s)-pd(today()))/864e5),dl=s=>{const n=diff(s);return n==0?'D-day':n>0?'D-'+n:'D+'+-n};
 const pc=n=>(S.platforms.find(p=>p.n==n)||{c:'#868e96'}).c,pr=id=>S.promos.find(p=>p.id==id);
 let tab='today',cm=new Date(),sel=today();cm.setDate(1);
-function evs(day){const r=[];S.promos.forEach(p=>{const c=pc(p.platform),l=p.platform+' '+p.title;
+function evs(day){const r=[];S.promos.forEach(p=>{if(p.status=='탈락')return;const c=pc(p.platform),l=p.platform+' '+p.title;
 if(p.applyStart==day)r.push({t:'신청 시작 · '+l,c,k:'pen',pid:p.id});if(p.applyEnd==day)r.push({t:'신청 마감 · '+l,c,k:'clock',pid:p.id});if(p.authorDue==day)r.push({t:'작가 전달 · '+l,c,k:'send',pid:p.id});
 if(p.start&&p.end&&day>=p.start&&day<=p.end)r.push({t:'진행 · '+l+(day==p.start?' (시작)':day==p.end?' (종료)':''),c,bar:1,k:'play',pid:p.id,mid:day!=p.start&&day!=p.end})});
 S.tasks.filter(t=>t.due==day).forEach(t=>r.push({t:t.title,c:'#868e96',task:t}));return r}
@@ -100,9 +106,26 @@ const sync=()=>{const d=pd(sel);cm=new Date(d.getFullYear(),d.getMonth(),1)},set
 const mv=n=>{if(cv=='week'){sel=add(sel,7*n);sync()}else cm.setMonth(cm.getMonth()+n);R()},sd=k=>{sel=k;R()};
 let _tx=null,_ty=0;$('#m').addEventListener('touchstart',e=>{_tx=e.target.closest('.cg')?e.touches[0].clientX:null;_ty=e.touches[0].clientY},{passive:true});
 $('#m').addEventListener('touchend',e=>{if(_tx==null)return;const dx=e.changedTouches[0].clientX-_tx,dy=Math.abs(e.changedTouches[0].clientY-_ty);_tx=null;if(Math.abs(dx)>60&&dy<40)mv(dx<0?1:-1)},{passive:true});
-function vPromo(){if(pv=='gantt')return vGantt();let h=`<div class=hd><h2>프로모션</h2><button onclick="np()">+ 등록</button></div>${pvt()}`;
-ST.forEach(s=>{const l=S.promos.filter(p=>p.status==s).sort((a,b)=>(a.applyEnd||a.start||'9')<(b.applyEnd||b.start||'9')?-1:1);if(!l.length)return;h+=`<h3>${s} ${l.length}</h3>`+l.map(p=>`<div class=cd tabindex=0 role=button style="border-left:5px solid ${pc(p.platform)}" onclick="ep(${p.id})"><b>${esc(p.platform)} · ${esc(p.title)}</b> <small>${esc(p.author||'')}</small><small>신청 ${p.applyStart||'-'} ~ ${p.applyEnd||'-'}${p.applyEnd?' ('+dl(p.applyEnd)+')':''} · 작가 전달 ${p.authorDue||'-'}</small><small>진행 ${p.start||'-'} ~ ${p.end||'-'}</small>${p.method?`<small>${esc(p.method)}</small>`:''}<select onclick="event.stopPropagation()" onchange="ps(${p.id},this.value)" style="margin-top:6px;width:auto">${ST.map(x=>`<option ${x==p.status?'selected':''}>${x}</option>`).join('')}</select></div>`).join('')});
-return h+(S.promos.length?'':'<p class=mu>플랫폼, 신청 기간, 작가 전달일, 진행 기간을 입력하면 달력과 할 일이 자동으로 만들어집니다.</p>')}
+const ACT=['준비','신청','선정','자료전달','진행중'],DONE=['종료','정산','탈락'];let pq='',pfv='';
+const nxp=p=>{const t0=today();return[['신청 시작',p.applyStart],['신청 마감',p.applyEnd],['작가 전달',p.authorDue],['진행 시작',p.start],['진행 종료',p.end]].filter(x=>x[1]&&x[1]>=t0).sort((a,b)=>a[1]<b[1]?-1:a[1]>b[1]?1:0)[0]||null},
+md=d=>d.slice(5).replace('-','/'),rg=(a,b)=>a||b?(a?md(a):'?')+'~'+(b?md(b):'?'):'';
+const pcard=p=>{const n=nxp(p),ap=rg(p.applyStart,p.applyEnd),pg=rg(p.start,p.end),hot=n&&diff(n[1])<=3&&diff(n[1])>=0;
+return`<div class="cd pc" tabindex=0 role=button style="border-left:5px solid ${pc(p.platform)}" onclick="ep(${p.id})"><div class=pt><b>${esc(p.platform)} · ${esc(p.title)}</b><button class="sm sc stb" aria-label="${esc(p.title)} 상태 변경: 현재 ${p.status}" onclick="event.stopPropagation();stsheet(${p.id})">${p.status}</button></div>${p.author?`<small>${esc(p.author)}</small>`:''}${n?`<div class=nx><b>${n[0]}</b> ${md(n[1])}<span class="${hot?'hot':''}">${dl(n[1])}</span></div>`:'<div class=nx><small>예정된 일정 없음</small></div>'}${ap||pg?`<small>${ap?'신청 '+ap:''}${ap&&pg?' · ':''}${pg?'진행 '+pg:''}</small>`:''}</div>`};
+const psort=(a,b)=>{const x=nxp(a),y=nxp(b),u=x?x[1]:'9',v=y?y[1]:'9';return u<v?-1:u>v?1:0};
+function plist(){const q=pq.trim().toLowerCase(),ok=p=>(!pfv||p.platform==pfv)&&(!q||(p.platform+' '+p.title+' '+(p.author||'')).toLowerCase().includes(q)),flt=!!(q||pfv),grp=s=>S.promos.filter(p=>p.status==s&&ok(p)).sort(psort);
+let h='',any=0;ACT.forEach(s=>{const l=grp(s);if(!l.length)return;any+=l.length;h+=`<div class=pg><h3>${s}<span class=n>${l.length}</span></h3>${l.map(pcard).join('')}</div>`});
+const dn=DONE.map(s=>[s,grp(s)]).filter(x=>x[1].length),dc=dn.reduce((a,x)=>a+x[1].length,0);any+=dc;
+if(dc)h+=`<details class="fs dn" ${flt?'open':''}><summary>종료·정산·탈락<span class=n>${dc}</span>${ico('chev-r',16)}</summary>`+dn.map(([s,l])=>`<div class=pg><h3>${s}<span class=n>${l.length}</span></h3>${l.map(pcard).join('')}</div>`).join('')+`</details>`;
+return any?h:(flt?'<p class=mu style="padding:18px 2px">일치하는 프로모션이 없습니다.</p>':'')}
+function pfl(){pq=$('#pq').value;$('#pl').innerHTML=plist()}
+function pfs(i){pfv=i<0?'':S.platforms[i].n;document.querySelectorAll('.chips .chip').forEach(b=>b.classList.toggle('on',b.dataset.i==i));$('#pl').innerHTML=plist()}
+function stsheet(id){const p=pr(id),o=document.createElement('div');o.className='ak';o.innerHTML=`<div role=dialog aria-modal=true class=akb><p>${esc(p.title)}<br><small>상태를 선택하세요</small></p><div class=stg>${ST.map(x=>`<button class="sm ${x==p.status?'':'sc'}" data-s="${x}">${x}</button>`).join('')}</div></div>`;document.body.appendChild(o);
+const done=v=>{o.remove();if(v&&v!=p.status){const old=p.status;ps(id,v);toast(p.title+' → '+v,()=>ps(id,old))}};o.onclick=e=>{const b=e.target.closest('button');if(b)done(b.dataset.s);else if(e.target==o)done()};o.onkeydown=e=>{if(e.key=='Escape')done()};o.querySelector('button:not(.sc)').focus()}
+function vPromo(){if(pv=='gantt')return vGantt();
+if(!S.promos.length)return`<div class=hd><h2>프로모션</h2></div>${pvt()}<div class=em><p>아직 등록한 프로모션이 없습니다. 신청 마감일부터 등록하면 달력과 할 일이 자동으로 만들어집니다.</p><button onclick="np()">${ico('plus',18)} 프로모션 등록</button></div>`;
+const pl=[...new Set(S.promos.map(p=>p.platform))],idx=n=>S.platforms.findIndex(x=>x.n==n);
+return`<div class=hd><h2>프로모션</h2><button onclick="np()">${ico('plus',18)} 등록</button></div>${pvt()}<input id=pq type=search placeholder="작품명·작가·플랫폼 검색" autocomplete=off value="${esc(pq)}" oninput="pfl()">
+<div class=chips><button class="chip ${pfv?'':'on'}" data-i=-1 onclick="pfs(-1)">전체</button>${S.platforms.filter(x=>pl.includes(x.n)).map(x=>`<button class="chip ${pfv==x.n?'on':''}" data-i=${idx(x.n)} onclick="pfs(${idx(x.n)})" style="--c:${x.c}"><i></i>${esc(x.n)}</button>`).join('')}</div><div id=pl>${plist()}</div>`}
 const ps=(id,v)=>{pr(id).status=v;save();R()};
 const PF=[['','기본 정보','sec'],['platform','플랫폼','sel',()=>S.platforms.map(p=>p.n),'half'],['status','상태','sel',()=>ST,'half'],['title','작품명 / 프로모션명','text',null,'req'],['author','작가','text'],
 ['','신청','sec'],['applyStart','신청 시작','date',null,'half'],['applyEnd','신청 마감','date',null,'half'],['authorDue','작가 전달 마감','date'],
