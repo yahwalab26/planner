@@ -1,7 +1,7 @@
-/* sync.js — Supabase 로그인·동기화·병합(sbInit/askLogin/stamp/mergeS/push/adopt)·상태 칩(sys/syc/sybH) (로드 순서 7/8) */
+/* sync.js — Supabase 로그인·동기화·병합(sbInit/askLogin/stamp/mergeS/push/adopt)·상태 칩(sys/syc/sybH) (로드 순서 7/9) */
 const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
 function askLogin(sb){return new Promise(res=>{const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--tx);display:flex;align-items:center;justify-content:center;padding:20px';
-o.innerHTML='<div style="width:100%;max-width:360px"><h2>'+ico('book',22)+' 출판사 플래너</h2><p class=mu>로그인하면 PC와 아이폰의 데이터가 자동으로 같아집니다.</p><input id=lge type=email placeholder="이메일" autocomplete=username><input id=lgp type=password placeholder="비밀번호" autocomplete=current-password style="margin-top:8px"><button class=bt id=lgb>로그인</button><small id=lgm style="color:var(--rd);margin-top:8px"></small><button class="bt sc" id=lgs>로그인 없이 이 기기에서만 사용</button></div>';
+o.innerHTML='<div class=lgw><h2>'+ico('book',22)+' 출판사 플래너</h2><p class=mu>로그인하면 PC와 아이폰의 데이터가 자동으로 같아집니다.</p><input id=lge type=email placeholder="이메일" autocomplete=username><input id=lgp type=password placeholder="비밀번호" autocomplete=current-password class=mt8><button class=bt id=lgb>로그인</button><small id=lgm class="rdc mt8"></small><button class="bt sc" id=lgs>로그인 없이 이 기기에서만 사용</button></div>';
 document.body.appendChild(o);const q=s=>o.querySelector(s);
 const go=async()=>{q('#lgm').textContent='';const{data,error}=await sb.auth.signInWithPassword({email:q('#lge').value.trim(),password:q('#lgp').value});if(error){q('#lgm').textContent='로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.';return}o.remove();res(data.session)};
 q('#lgb').onclick=go;q('#lgp').onkeydown=e=>{if(e.key=='Enter')go()};q('#lgs').onclick=()=>{o.remove();res(null)}})}
@@ -26,7 +26,7 @@ const nw=(L.rev||0)>=(R.rev||0)?L:R,od=nw===L?R:L,dm=(a,b)=>{const o={};for(cons
 sigAll();
 const sys=t=>{SYS=t;const e=$('#sys');if(e)e.textContent=t;sybU()};
 const syc=()=>{const t=SYS||'';return/실패|오류|연결하지 못/.test(t)?['err',/연결하지 못/.test(t)?'연결 안 됨':'동기화 실패']:/오프라인/.test(t)?['off','오프라인']:/연결 중|동기화 중/.test(t)?['busy','동기화 중']:/동기화됨|켜짐/.test(t)?['ok',t.length<=12?t:'동기화됨']:['off','이 기기에만 저장']};
-const sybH=()=>{const[c,l]=syc();return`<button id=syb class="syb ${c}" aria-label="동기화 상태: ${l}" onclick="sycl()"><i></i>${l}</button>`},
+const sybH=()=>{const[c,l]=syc();return`<button id=syb class="syb ${c}" aria-label="동기화 상태: ${l}" data-a="sycl"><i></i>${l}</button>`},
 sybU=()=>{const b=$('#syb');if(!b)return;const[c,l]=syc();b.className='syb '+c;b.innerHTML='<i></i>'+l;b.setAttribute('aria-label','동기화 상태: '+l)},
 sycl=()=>{if(syc()[0]=='err'&&SY){sys('동기화 중…');push();toast('다시 동기화합니다')}else{tab='set';scrollTo(0,0);R()}};
 addEventListener('offline',()=>{if(SY)sys('오프라인 · 이 기기에 저장 중')});

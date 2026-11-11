@@ -1,4 +1,4 @@
-/* core.js — 상태(S)·저장·날짜 유틸·아이콘(IC/ico)·토스트/확인 시트·입력 폼 엔진(form) (로드 순서 1/8) */
+/* core.js — 상태(S)·저장·날짜 유틸·아이콘(IC/ico)·토스트/확인 시트·입력 폼 엔진(form) (로드 순서 1/9) */
 const $=s=>document.querySelector(s),K='pubplanner1',pad=n=>String(n).padStart(2,'0'),WD='일월화수목금토',ST=['준비','신청','선정','자료전달','진행중','종료','정산','탈락'];
 let S;
 try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
@@ -24,7 +24,7 @@ const has=(e,f)=>(e[4]||'').includes(f),fld=e=>{const[k,l,t,o]=e,v=val[k]??'',rq
 return`<div class=fd><label for=f_${k}>${l}${rq?'<span class=rq>필수</span>':''}</label>`+(t=='sel'?`<select id=f_${k}>${o().map(x=>`<option ${x==v?'selected':''}>${esc(x)}</option>`).join('')}</select>`:t=='area'?`<textarea id=f_${k} rows=3>${esc(v)}</textarea>`:`<input id=f_${k} type="${t=='text'?'text':t=='num'?'number':t}" value="${esc(v)}"${rq?' aria-required=true':''}>`)+'</div>'};
 const body=f=>{let h='',two=0;f.forEach(e=>{const hf=has(e,'half');if(hf&&!two){h+='<div class=two>';two=1}else if(!hf&&two){h+='</div>';two=0}h+=fld(e)});return h+(two?'</div>':'')};
 let h=`<h2>${title}</h2>`;G.forEach(g=>{if(!g.f.length)return;if(!g.t){h+=body(g.f);return}const op=g.f.some(e=>e[2]!='chk'&&val[e[0]]);h+=g.fold?`<details class=fs ${op?'open':''}><summary>${g.t}${ico('chev-r',16)}</summary>${body(g.f)}</details>`:`<section class=fs><h4>${g.t}</h4>${body(g.f)}</section>`});
-h+=`<div class=row><button class=sc onclick="cl()">취소</button>${del?`<button class=dg onclick="del2()">삭제</button>`:''}<button style="flex:1" onclick="window._s()">저장</button></div>`;
+h+=`<div class=row><button class=sc data-a="cl">취소</button>${del?`<button class=dg data-a="del2">삭제</button>`:''}<button data-a="save">저장</button></div>`;
 $('#fm').innerHTML=h;$('#fm').scrollTop=0;$('#ov').classList.add('on');vf();window._d=del;
 window._s=()=>{const v={};let bad=null;document.querySelectorAll('#fm .err').forEach(x=>x.classList.remove('err'));F.forEach(e=>{if(e[2]=='sec')return;const[k,l,t]=e,x=$('#f_'+k);v[k]=t=='chk'?x.checked:t=='num'?+x.value||0:x.value.trim();if(has(e,'req')&&!v[k]&&!bad)bad=[x,l]});
 if(bad){bad[0].classList.add('err');bad[0].focus();toast(bad[1].split(' (')[0]+'을(를) 입력하세요');return}if(ok(v))cl()};
