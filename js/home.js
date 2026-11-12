@@ -27,7 +27,12 @@ return{title,due,cat,pri,hit}}
 const qd=r=>r.due.slice(5).replace('-','/')+' ('+WD[pd(r.due).getDay()]+') · '+r.cat+(r.pri=='높음'?' · 중요':'');
 function qp(){const e=$('#qp'),i=$('#qi');if(!e||!i)return;const v=i.value.trim();e.textContent=v?qd(parseQ(v)):''}
 function qa(){const el=$('#qi'),v=el.value.trim();if(!v)return;const r=parseQ(v),id=nid();el.value='';S.tasks.push({id,title:r.title,due:r.due,cat:r.cat,pri:r.pri,repeat:'없음',done:0});save();R();const n=$('#qi');if(n)n.focus();toast(qd(r)+' 추가했습니다',()=>{S.tasks=S.tasks.filter(t=>t.id!=id);save();R()})}
-function tg(id){const t=S.tasks.find(x=>x.id==id);t.done=t.done?0:1;if(t.done&&t.repeat&&t.repeat!='없음'){let n;if(t.repeat=='매주')n=add(t.due,7);else{const d=pd(t.due);if(t.repeat=='매년')d.setFullYear(d.getFullYear()+1);else d.setMonth(d.getMonth()+1);n=t.eom?ds(new Date(pd(t.due).getFullYear(),pd(t.due).getMonth()+2,0)):ds(d)}S.tasks.push({...t,id:nid(),due:n,done:0})}save();R()}
+function nextDue(t){if(t.repeat=='매주')return add(t.due,7);const d=pd(t.due),y=d.getFullYear(),m=d.getMonth(),dm=t.dom||d.getDate(),ld=(yy,mm)=>new Date(yy,mm+1,0).getDate();
+if(t.repeat=='매년')return ds(new Date(y+1,m,Math.min(dm,ld(y+1,m))));
+if(t.eom)return ds(new Date(y,m+2,0));
+return ds(new Date(y,m+1,Math.min(dm,ld(y,m+1))))}
+function tg(id){const t=S.tasks.find(x=>x.id==id);t.done=t.done?0:1;if(t.done&&t.repeat&&t.repeat!='없음'){const n=nextDue(t),dm=t.dom||pd(t.due).getDate();
+if(!S.tasks.some(x=>x!==t&&!x.done&&x.title==t.title&&x.due==n&&x.repeat==t.repeat&&x.promoId==t.promoId)){const c={...t,id:nid(),due:n,done:0};if(dm>28&&!t.eom)c.dom=dm;else delete c.dom;S.tasks.push(c)}}save();R()}
 const dots=(k,e)=>{const a=e.filter(x=>!(x.task&&x.task.done)&&!(x.bar&&x.mid)),g=e.filter(x=>x.bar&&x.mid).slice(0,1),all=[...a.map(x=>[x,0]),...g.map(x=>[x,1])],sh=all.slice(0,3),t0=today();
 return sh.map(([x,r])=>`<u class="${r?'rg':''}" style="--d:${x.task?(k<t0?'var(--rd)':'var(--mu)'):x.c}"></u>`).join('')+(all.length>3?'<i>+'+(all.length-3)+'</i>':'')};
 function vCal(){const t0=today(),y=cm.getFullYear(),mo=cm.getMonth(),wk=cv=='week';let days;
