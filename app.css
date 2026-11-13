@@ -1,3 +1,4 @@
+@font-face{font-family:'Pretendard Variable';font-style:normal;font-weight:400 700;font-display:swap;src:url(fonts/PlannerSans.woff2) format('woff2-variations'),url(fonts/PlannerSans.woff2) format('woff2')}
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#F3F4F6;--cd:#fff;--tx:#1A1D24;--mu:#5E6472;--bd:#E1E3E8;--ac:#0F6B5F;--as:#E3F1EE;--rd:#C62A47;--ao:#fff;--sh:0 1px 2px rgba(21,23,28,.04),0 0 0 1px rgba(21,23,28,.06);color-scheme:light}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0E1115;--cd:#171B21;--tx:#E9ECF1;--mu:#9AA1AE;--bd:#262B34;--ac:#5FCDB9;--as:#14302B;--rd:#FF7A93;--ao:#07211C;--sh:0 0 0 1px rgba(255,255,255,.07);color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;overflow-x:hidden;-webkit-text-size-adjust:100%}
