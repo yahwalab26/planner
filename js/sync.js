@@ -18,18 +18,18 @@ let SG={};
 const sig=x=>JSON.stringify({...x,u:0}),CL=[['promos','p'],['tasks','t'],['goals','g']];
 function sigAll(){SG={};CL.forEach(([c,k])=>(S[c]||[]).forEach(x=>SG[k+x.id]=sig(x)))}
 function stamp(){const now=Date.now(),cur={};CL.forEach(([c,k])=>(S[c]||[]).forEach(x=>{const key=k+x.id,s=sig(x);cur[key]=1;if(SG[key]!==s){x.u=now;SG[key]=s}}));S.del=S.del||{};Object.keys(SG).forEach(k=>{if(!cur[k]){S.del[k]=now;delete SG[k]}})}
-function mergeS(L,R){const del={...(R.del||{})};for(const k in(L.del||{}))del[k]=Math.max(del[k]||0,L.del[k]);const now=Date.now();for(const k in del)if(now-del[k]>9e9)delete del[k];const M={...R,del};
+function mergeS(L,R){const del={...(R.del||{})};for(const k in(L.del||{}))del[k]=Math.max(del[k]||0,L.del[k]);const now=Date.now();for(const k in del)if(now-del[k]>9e9)delete del[k];const M={...R,del,v:SCHEMA};
 CL.forEach(([c,k])=>{const mp=new Map();[...(R[c]||[]),...(L[c]||[])].forEach(x=>{const o=mp.get(x.id);if(!o||(x.u||0)>=(o.u||0))mp.set(x.id,x)});M[c]=[...mp.values()].filter(x=>!(del[k+x.id]>(x.u||0))).sort((a,b)=>a.id-b.id)});
 const pm=new Map();[...(R.platforms||[]),...(L.platforms||[])].forEach(p=>pm.set(p.n,p));M.platforms=[...pm.values()];
 const nw=(L.rev||0)>=(R.rev||0)?L:R,od=nw===L?R:L,dm=(a,b)=>{const o={};for(const k of new Set([...Object.keys(a||{}),...Object.keys(b||{})])){const x=a&&a[k],y=b&&b[k];o[k]=x&&y&&typeof x=='object'&&typeof y=='object'?dm(x,y):(y!==undefined?y:x)}return o};
 ['sales','pub','tpl'].forEach(k=>M[k]=dm(od[k],nw[k]));M.lastBackup=[L.lastBackup,R.lastBackup].filter(Boolean).sort().pop();M.id=Math.max(L.id||1,R.id||1);return M}
 sigAll();
 const sys=t=>{SYS=t;const e=$('#sys');if(e)e.textContent=t;sybU()};
-const syc=()=>{const t=SYS||'';return/실패|오류|연결하지 못/.test(t)?['err',/연결하지 못/.test(t)?'연결 안 됨':'동기화 실패']:/오프라인/.test(t)?['off','오프라인']:/연결 중|동기화 중/.test(t)?['busy','동기화 중']:/동기화됨|켜짐/.test(t)?['ok',t.length<=12?t:'동기화됨']:['off','이 기기에만 저장']};
+const syc=()=>{const t=SYS||'';return/새로운 버전/.test(t)?['err','새로고침 필요']:/실패|오류|연결하지 못/.test(t)?['err',/연결하지 못/.test(t)?'연결 안 됨':'동기화 실패']:/오프라인/.test(t)?['off','오프라인']:/연결 중|동기화 중/.test(t)?['busy','동기화 중']:/동기화됨|켜짐/.test(t)?['ok',t.length<=12?t:'동기화됨']:['off','이 기기에만 저장']};
 const sybH=()=>{const[c,l]=syc();return`<button id=syb class="syb ${c}" aria-label="동기화 상태: ${l}" data-a="sycl"><i></i>${l}</button>`},
 sybU=()=>{const b=$('#syb');if(!b)return;const[c,l]=syc();b.className='syb '+c;b.innerHTML='<i></i>'+l;b.setAttribute('aria-label','동기화 상태: '+l)},
 sycl=()=>{if(syc()[0]=='err'&&SY){sys('동기화 중…');push();toast('다시 동기화합니다')}else{tab='set';scrollTo(0,0);R()}};
 addEventListener('offline',()=>{if(SY)sys('오프라인 · 이 기기에 저장 중')});
 addEventListener('online',()=>{if(SY){sys('동기화 중…');push()}});
-function push(){if(!SY)return;sys('동기화 중…');clearTimeout(syTm);syTm=setTimeout(async()=>{try{await SY.set({json:JSON.stringify(S),rev:S.rev});sys('동기화됨 '+new Date().toTimeString().slice(0,5))}catch(e){sys('동기화 실패 · 이 기기에는 저장됨')}},1500)}
-function adopt(r,rep){try{const o=JSON.parse(r.json),m=rep?o:mergeS(S,o),f=x=>[x.promos,x.tasks,x.goals,x.sales,x.pub,x.tpl,x.platforms,x.del].map(a=>JSON.stringify(a||null)).join('|'),ch=!rep&&f(m)!=f(o);m.rev=Math.max(r.rev,S.rev||0);S=m;sigAll();if(ch)S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}if(ch)push();else sys('동기화됨 '+new Date().toTimeString().slice(0,5));if(!$('#ov').classList.contains('on'))R()}catch(e){}}
+function push(){if(!SY||SBLOCK)return;sys('동기화 중…');clearTimeout(syTm);syTm=setTimeout(async()=>{try{await SY.set({json:JSON.stringify(S),rev:S.rev});sys('동기화됨 '+new Date().toTimeString().slice(0,5))}catch(e){sys('동기화 실패 · 이 기기에는 저장됨')}},1500)}
+function adopt(r,rep){try{if(SBLOCK)return;const o0=JSON.parse(r.json);if((+o0.v||0)>SCHEMA){SBLOCK=1;sys('서버 데이터가 더 새로운 버전입니다 · 앱을 새로고침해 주세요');return}const o=migrate(o0),m=rep?o:mergeS(S,o),f=x=>[x.promos,x.tasks,x.goals,x.sales,x.pub,x.tpl,x.platforms,x.del].map(a=>JSON.stringify(a||null)).join('|'),ch=!rep&&f(m)!=f(o);m.rev=Math.max(r.rev,S.rev||0);S=m;sigAll();if(ch)S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}if(ch)push();else sys('동기화됨 '+new Date().toTimeString().slice(0,5));if(!$('#ov').classList.contains('on'))R()}catch(e){console.error('adopt 실패',e);sys('동기화 실패 · 서버 데이터를 처리하지 못했습니다')}}

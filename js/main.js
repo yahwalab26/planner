@@ -12,4 +12,5 @@ if(first){first=0;clearTimeout(tm);const has=S.promos.length+S.tasks.length+S.go
 if(!r){if(has||S.rev)push();sys('동기화 켜짐')}else if(!S.rev&&has){ask('클라우드에 저장된 데이터가 있습니다. 어느 쪽을 사용할까요?','클라우드 데이터 사용','이 기기 데이터로 덮어쓰기').then(ok=>ok?adopt(r,1):push())}else if(r.rev!=S.rev)adopt(r);else sys('동기화됨')}
 else if(r&&r.rev>(S.rev||0)&&!s.hasPendingWrites)adopt(r)},e=>sys('동기화 오류 · 이 기기에는 저장됨'))}catch(e){}})();
 R();
+if(window.__badLoad)toast('저장된 데이터를 읽지 못해 새로 시작했습니다. 원본은 이 기기에 따로 보관해 두었으니 지우지 말고 문의해 주세요.');else if(SBLOCK)toast('이 데이터는 더 새로운 버전 앱에서 저장되었습니다. 앱을 새로고침해 주세요.');
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))addEventListener('load',()=>{try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}});

@@ -1,8 +1,20 @@
 /* core.js — 상태(S)·저장·날짜 유틸·아이콘(IC/ico)·토스트/확인 시트·입력 폼 엔진(form) (로드 순서 1/9) */
 const $=s=>document.querySelector(s),K='pubplanner1',pad=n=>String(n).padStart(2,'0'),WD='일월화수목금토',ST=['준비','신청','선정','자료전달','진행중','종료','정산','탈락'];
-let S;
-try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
-S=S||{platforms:[{n:'리디',c:'#1f8ce6'},{n:'교보문고',c:'#2f9e44'},{n:'알라딘',c:'#f08c00'},{n:'예스24',c:'#e03131'},{n:'북큐브',c:'#7048e8'}],promos:[],tasks:[],goals:[],id:1};
+/* 데이터 형식 버전. 저장 형식을 바꿀 때: ① SCHEMA +1 ② MIG 맨 끝에 "이전 버전 → 새 버전" 변환 함수 추가(순수 함수, 입력 복사본을 고쳐 반환)
+   ③ scripts/unit.js 의 J 그룹에 옛 형식 샘플 추가. 구버전 앱은 더 높은 버전의 데이터를 읽거나 서버에 덮어쓰지 않는다(SBLOCK). */
+const SCHEMA=1,DP=[{n:'리디',c:'#1f8ce6'},{n:'교보문고',c:'#2f9e44'},{n:'알라딘',c:'#f08c00'},{n:'예스24',c:'#e03131'},{n:'북큐브',c:'#7048e8'}],
+MIG=[o=>{/* v0 → v1: 버전 표시가 없던 옛 데이터의 빠진 값·형식 정리 */
+const A=k=>Array.isArray(o[k])?o[k]:(o[k]=[]),O=k=>o[k]&&typeof o[k]=='object'&&!Array.isArray(o[k])?o[k]:(o[k]={}),id=x=>{if(typeof x.id=='string'&&/^\d+$/.test(x.id))x.id=+x.id};
+o.platforms=(Array.isArray(o.platforms)?o.platforms:[]).filter(p=>p&&p.n).map(p=>({...p,c:p.c||'#868e96'}));if(!o.platforms.length)o.platforms=DP.map(p=>({...p}));
+A('promos').forEach(p=>{id(p);p.platform=p.platform||'';p.title=p.title||'';if(!ST.includes(p.status))p.status='준비'});
+A('tasks').forEach(t=>{id(t);t.title=t.title||'';t.cat=t.cat||'행정';t.pri=t.pri||'보통';t.repeat=t.repeat||'없음';t.done=t.done?1:0});
+A('goals').forEach(g=>{id(g);g.target=+g.target||0;g.current=+g.current||0;g.period=g.period||'연간'});
+O('sales');O('pub');O('tpl');O('del');o.id=+o.id||1;o.rev=+o.rev||0;return o}];
+function migrate(o){o=JSON.parse(JSON.stringify(o));let v=+o.v||0;if(v>SCHEMA)return o;while(v<SCHEMA){o=MIG[v](o);v++;o.v=v}return o}
+let S,SBLOCK=0,_raw=null;
+try{_raw=localStorage.getItem(K);S=JSON.parse(_raw)}catch(e){if(_raw){try{localStorage.setItem(K+'.bad',_raw)}catch(_){}window.__badLoad=1}}
+if(!S||typeof S!='object'||Array.isArray(S))S={platforms:DP.map(p=>({...p})),promos:[],tasks:[],goals:[],id:1};
+if((+S.v||0)>SCHEMA)SBLOCK=1;else S=migrate(S);
 let _n=Math.floor(Math.random()*100),SY=null,SYS='이 화면에서는 동기화를 쓸 수 없습니다 (이 기기에만 저장)',syTm;
 const save=()=>{stamp();S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}push()},nid=()=>Date.now()*100+(_n++%100),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),pd=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)},add=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)},today=()=>ds(new Date()),diff=s=>Math.round((pd(s)-pd(today()))/864e5),dl=s=>{const n=diff(s);return n==0?'D-day':n>0?'D-'+n:'D+'+-n};
