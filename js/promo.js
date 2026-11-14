@@ -2,7 +2,7 @@
 const ACT=['준비','신청','선정','자료전달','진행중'],DONE=['종료','정산','탈락'];
 let pq='',pfv='',pdo=0;
 const nxp=p=>{const t0=today();return[['신청 시작',p.applyStart],['신청 마감',p.applyEnd],['작가 전달',p.authorDue],['진행 시작',p.start],['진행 종료',p.end]].filter(x=>x[1]&&x[1]>=t0).sort((a,b)=>a[1]<b[1]?-1:a[1]>b[1]?1:0)[0]||null},
-md=d=>d.slice(5).replace('-','/'),rg=(a,b)=>a||b?(a?md(a):'?')+'~'+(b?md(b):'?'):'';
+md=d=>d.slice(5).replace('-','/'),rg=(a,b)=>a&&b?md(a)+'~'+md(b):a?md(a)+'~':b?'~'+md(b):'';
 const pcard=p=>{const n=nxp(p),ap=rg(p.applyStart,p.applyEnd),pg=rg(p.start,p.end),hot=n&&diff(n[1])<=3&&diff(n[1])>=0;
 return`<div class="cd pc" tabindex=0 role=button style="border-left:5px solid ${pc(p.platform)}" data-a="ep" data-v="${p.id}"><div class=pt><b>${esc(p.platform)} · ${esc(p.title)}</b><button class="sm sc stb" aria-label="${esc(p.title)} 상태 변경: 현재 ${p.status}" data-a="stsheet" data-v="${p.id}">${p.status}</button></div>${p.author?`<small>${esc(p.author)}</small>`:''}${n?`<div class=nx><b>${n[0]}</b> ${md(n[1])}<span class="${hot?'hot':''}">${dl(n[1])}</span></div>`:'<div class=nx><small>예정된 일정 없음</small></div>'}${ap||pg?`<small>${ap?'신청 '+ap:''}${ap&&pg?' · ':''}${pg?'진행 '+pg:''}</small>`:''}</div>`};
 const psort=(a,b)=>{const x=nxp(a),y=nxp(b),u=x?x[1]:'9',v=y?y[1]:'9';return u<v?-1:u>v?1:0};
