@@ -16,7 +16,7 @@ try{_raw=localStorage.getItem(K);S=JSON.parse(_raw)}catch(e){if(_raw){try{localS
 if(!S||typeof S!='object'||Array.isArray(S))S={platforms:DP.map(p=>({...p})),promos:[],tasks:[],goals:[],id:1};
 if((+S.v||0)>SCHEMA)SBLOCK=1;else S=migrate(S);
 let _n=Math.floor(Math.random()*100),SY=null,SYS='이 화면에서는 동기화를 쓸 수 없습니다 (이 기기에만 저장)',syTm;
-const save=()=>{stamp();S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}push()},nid=()=>Date.now()*100+(_n++%100),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const save=()=>{stamp();S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){if(!window.__qw){window.__qw=1;toast('이 기기에 저장하지 못했습니다(저장 공간 부족). 엑셀로 백업해 두세요.')}}push()},nid=()=>Date.now()*100+(_n++%100),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),pd=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)},add=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)},today=()=>ds(new Date()),diff=s=>Math.round((pd(s)-pd(today()))/864e5),dl=s=>{const n=diff(s);return n==0?'D-day':n>0?'D-'+n:'D+'+-n};
 const pc=n=>(S.platforms.find(p=>p.n==n)||{c:'#868e96'}).c,pr=id=>S.promos.find(p=>p.id==id);
 let tab='today',cm=new Date(),sel=today();
@@ -44,4 +44,4 @@ if(bad){bad[0].classList.add('err');bad[0].focus();toast(bad[1].split(' (')[0]+'
 function vf(){const o=$('#ov'),v=window.visualViewport;if(!v)return;if(o.classList.contains('on')){o.style.top=v.offsetTop+'px';o.style.height=v.height+'px';o.style.bottom='auto'}else{o.style.top=o.style.height=o.style.bottom=''}}
 if(window.visualViewport){visualViewport.addEventListener('resize',vf);visualViewport.addEventListener('scroll',vf)}
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&$('#ov').classList.contains('on')&&!document.querySelector('.ak'))cl()});
-const cl=()=>{$('#ov').classList.remove('on');vf()};
+const cl=()=>{$('#ov').classList.remove('on');vf();if(window.__stale){window.__stale=0;R()}};

@@ -9,10 +9,11 @@ async function sbInit(){const c=window.PLANNER_CFG;if(!c||!c.url||!c.key)return 
 try{if(!window.supabase)await ld('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js');
 const sb=window.SB=supabase.createClient(c.url,c.key);let{data:{session}}=await sb.auth.getSession();if(!session)session=await askLogin(sb);if(!session){sys('로그인하지 않아 이 기기에만 저장 중');return null}
 const uid=session.user.id;
-return{set:async o=>{const{error}=await sb.from('planner_state').upsert({user_id:uid,json:o.json,rev:o.rev,updated_at:new Date().toISOString()});if(error)throw error},
-onSnapshot:(cb,eb)=>{const f=async()=>{const{data,error}=await sb.from('planner_state').select('json,rev').eq('user_id',uid).maybeSingle();if(error){eb&&eb(error);return}cb({exists:!!data,data:()=>data&&{json:data.json,rev:+data.rev},fromCache:false,hasPendingWrites:false})};
-f();document.addEventListener('visibilitychange',()=>{if(!document.hidden)f()});try{sb.channel('ps').on('postgres_changes',{event:'*',schema:'public',table:'planner_state',filter:'user_id=eq.'+uid},f).subscribe()}catch(e){}}}}
+return mkSB(sb,uid)}
 catch(e){sys('동기화 서버에 연결하지 못했습니다 · 이 기기에만 저장 중');return null}}
+function mkSB(sb,uid){return{set:async o=>{const{error}=await sb.from('planner_state').upsert({user_id:uid,json:o.json,rev:o.rev,updated_at:new Date().toISOString()});if(error)throw error},
+onSnapshot:(cb,eb)=>{let fb=0,fq=0;const f=async()=>{if(fb){fq=1;return}fb=1;try{const{data,error}=await sb.from('planner_state').select('json,rev').eq('user_id',uid).maybeSingle();if(error){eb&&eb(error);return}cb({exists:!!data,data:()=>data&&{json:data.json,rev:+data.rev},fromCache:false,hasPendingWrites:false})}finally{fb=0;if(fq){fq=0;f()}}};
+f();document.addEventListener('visibilitychange',()=>{if(!document.hidden)f()});try{sb.channel('ps').on('postgres_changes',{event:'*',schema:'public',table:'planner_state',filter:'user_id=eq.'+uid},f).subscribe()}catch(e){}}}}
 async function sbout(){try{await window.SB.auth.signOut()}catch(e){}location.reload()}
 let SG={};
 const sig=x=>JSON.stringify({...x,u:0}),CL=[['promos','p'],['tasks','t'],['goals','g']];
@@ -31,5 +32,14 @@ sybU=()=>{const b=$('#syb');if(!b)return;const[c,l]=syc();b.className='syb '+c;b
 sycl=()=>{if(syc()[0]=='err'&&SY){sys('동기화 중…');push();toast('다시 동기화합니다')}else{tab='set';scrollTo(0,0);R()}};
 addEventListener('offline',()=>{if(SY)sys('오프라인 · 이 기기에 저장 중')});
 addEventListener('online',()=>{if(SY){sys('동기화 중…');push()}});
-function push(){if(!SY||SBLOCK)return;sys('동기화 중…');clearTimeout(syTm);syTm=setTimeout(async()=>{try{await SY.set({json:JSON.stringify(S),rev:S.rev});sys('동기화됨 '+new Date().toTimeString().slice(0,5))}catch(e){sys('동기화 실패 · 이 기기에는 저장됨')}},1500)}
-function adopt(r,rep){try{if(SBLOCK)return;const o0=JSON.parse(r.json);if((+o0.v||0)>SCHEMA){SBLOCK=1;sys('서버 데이터가 더 새로운 버전입니다 · 앱을 새로고침해 주세요');return}const o=migrate(o0),m=rep?o:mergeS(S,o),f=x=>[x.promos,x.tasks,x.goals,x.sales,x.pub,x.tpl,x.platforms,x.del].map(a=>JSON.stringify(a||null)).join('|'),ch=!rep&&f(m)!=f(o);m.rev=Math.max(r.rev,S.rev||0);S=m;sigAll();if(ch)S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}if(ch)push();else sys('동기화됨 '+new Date().toTimeString().slice(0,5));if(!$('#ov').classList.contains('on'))R()}catch(e){console.error('adopt 실패',e);sys('동기화 실패 · 서버 데이터를 처리하지 못했습니다')}}
+/* 서버 저장: 빠른 연속 저장은 1.5초 뒤 한 번으로 합치고, 전송 중에는 동시에 두 번 보내지 않으며(끝난 뒤 최신본을 다시 보냄),
+   실패하면 5초·10초·20초… 간격으로 최대 5번 다시 시도하고, 앱을 닫거나 전환하는 순간(pagehide/hidden)에는 대기 없이 바로 보낸다. */
+let syBusy=0,syDirty=0,syTry=0,syPend=0,SYNC_DEBOUNCE_MS=1500,SYNC_RETRY_MS=5000;
+function push(){if(!SY||SBLOCK)return;sys('동기화 중…');syTry=0;syPend=1;clearTimeout(syTm);syTm=setTimeout(syRun,SYNC_DEBOUNCE_MS)}
+async function syRun(){clearTimeout(syTm);syPend=0;if(syBusy){syDirty=1;return}syBusy=1;
+try{await SY.set({json:JSON.stringify(S),rev:S.rev});sys('동기화됨 '+new Date().toTimeString().slice(0,5));syTry=0}
+catch(e){sys('동기화 실패 · 이 기기에는 저장됨');if(syTry<5){syTry++;syTm=setTimeout(syRun,SYNC_RETRY_MS*Math.pow(2,syTry-1))}}
+finally{syBusy=0;if(syDirty){syDirty=0;push()}}}
+function syFlush(){if(syPend&&SY&&!SBLOCK)syRun()}
+addEventListener('pagehide',syFlush);document.addEventListener('visibilitychange',()=>{if(document.hidden)syFlush()});
+function adopt(r,rep){try{if(SBLOCK)return;const o0=JSON.parse(r.json);if((+o0.v||0)>SCHEMA){SBLOCK=1;sys('서버 데이터가 더 새로운 버전입니다 · 앱을 새로고침해 주세요');return}const o=migrate(o0),m=rep?o:mergeS(S,o),f=x=>[x.promos,x.tasks,x.goals,x.sales,x.pub,x.tpl,x.platforms,x.del].map(a=>JSON.stringify(a||null)).join('|'),ch=!rep&&f(m)!=f(o),prev=f(S);m.rev=Math.max(r.rev,S.rev||0);S=m;sigAll();if(ch)S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}if(ch)push();else sys('동기화됨 '+new Date().toTimeString().slice(0,5));if(f(S)!=prev){if($('#ov').classList.contains('on'))window.__stale=1;else R()}}catch(e){console.error('adopt 실패',e);sys('동기화 실패 · 서버 데이터를 처리하지 못했습니다')}}
