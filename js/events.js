@@ -8,7 +8,7 @@ const CLK={
   /* 프로모션 */ np:()=>np(),ep:v=>ep(toN(v)),stsheet:v=>stsheet(toN(v)),pfs:v=>pfs(+v),pdo:(v,el)=>{pdo=!el.parentNode.open},pv:v=>{pv=v;R()},gm:v=>gm(+v),gr:v=>{gr=v;R()},
   /* 매출 */ es:v=>es(...v.split('-').map(Number)),sk:v=>{sk=v;R()},sy:v=>{sy+=+v;R()},spp:()=>spp(),
   /* 목표 */ ng:()=>ng(),eg:v=>eg(toN(v)),gp:v=>gp(toN(v)),
-  /* 설정 */ etp:v=>etp(+v),npf:()=>npf(),tx:()=>tx(),xl:()=>xl(),ics:()=>ics(),ex:()=>ex(),im:()=>im(),sbout:()=>sbout(),
+  /* 설정 */ csv:v=>csvDl(v),etp:v=>etp(+v),npf:()=>npf(),tx:()=>tx(),xl:()=>xl(),ics:()=>ics(),ex:()=>ex(),im:()=>im(),sbout:()=>sbout(),
   /* 동기화 칩 */ sycl:()=>sycl()
 },
 CHG={tg:v=>tg(toN(v)),xi:(v,el)=>xi(el)},
