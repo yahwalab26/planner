@@ -2,14 +2,19 @@
 const $=s=>document.querySelector(s),K='pubplanner1',pad=n=>String(n).padStart(2,'0'),WD='일월화수목금토',ST=['준비','신청','선정','자료전달','진행중','종료','정산','탈락'];
 /* 데이터 형식 버전. 저장 형식을 바꿀 때: ① SCHEMA +1 ② MIG 맨 끝에 "이전 버전 → 새 버전" 변환 함수 추가(순수 함수, 입력 복사본을 고쳐 반환)
    ③ scripts/unit.js 의 J 그룹에 옛 형식 샘플 추가. 구버전 앱은 더 높은 버전의 데이터를 읽거나 서버에 덮어쓰지 않는다(SBLOCK). */
-const SCHEMA=1,DP=[{n:'리디',c:'#1f8ce6'},{n:'교보문고',c:'#2f9e44'},{n:'알라딘',c:'#f08c00'},{n:'예스24',c:'#e03131'},{n:'북큐브',c:'#7048e8'}],
+const SCHEMA=2,DP=[{n:'리디북스',c:'#1f8ce6'},{n:'교보문고',c:'#2f9e44'},{n:'알라딘',c:'#f08c00'},{n:'예스24',c:'#e03131'},{n:'북큐브',c:'#7048e8'}],
 MIG=[o=>{/* v0 → v1: 버전 표시가 없던 옛 데이터의 빠진 값·형식 정리 */
 const A=k=>Array.isArray(o[k])?o[k]:(o[k]=[]),O=k=>o[k]&&typeof o[k]=='object'&&!Array.isArray(o[k])?o[k]:(o[k]={}),id=x=>{if(typeof x.id=='string'&&/^\d+$/.test(x.id))x.id=+x.id};
 o.platforms=(Array.isArray(o.platforms)?o.platforms:[]).filter(p=>p&&p.n).map(p=>({...p,c:p.c||'#868e96'}));if(!o.platforms.length)o.platforms=DP.map(p=>({...p}));
 A('promos').forEach(p=>{id(p);p.platform=p.platform||'';p.title=p.title||'';if(!ST.includes(p.status))p.status='준비'});
 A('tasks').forEach(t=>{id(t);t.title=t.title||'';t.cat=t.cat||'행정';t.pri=t.pri||'보통';t.repeat=t.repeat||'없음';t.done=t.done?1:0});
 A('goals').forEach(g=>{id(g);g.target=+g.target||0;g.current=+g.current||0;g.period=g.period||'연간'});
-O('sales');O('pub');O('tpl');O('del');o.id=+o.id||1;o.rev=+o.rev||0;return o}];
+O('sales');O('pub');O('tpl');O('del');o.id=+o.id||1;o.rev=+o.rev||0;return o},o=>{/* v1 → v2: 플랫폼 이름을 정산 사이트와 통일(리디 → 리디북스). 플랫폼 목록·프로모션·매출·순수익·템플릿을 함께 옮김(멱등) */
+const R={'리디':'리디북스'},rn=n=>R[n]||n,seen={};
+o.platforms=(o.platforms||[]).map(p=>({...p,n:rn(p.n)})).filter(p=>!seen[p.n]&&(seen[p.n]=1));
+(o.promos||[]).forEach(p=>{p.platform=rn(p.platform)});
+['sales','pub'].forEach(k=>Object.values(o[k]||{}).forEach(m=>{Object.keys(R).forEach(a=>{if(a in m){m[R[a]]=(+m[R[a]]||0)+(+m[a]||0);delete m[a]}})}));
+Object.keys(R).forEach(a=>{const t=o.tpl||{};if(a in t){if(!(R[a] in t))t[R[a]]=t[a];delete t[a]}});return o}];
 function migrate(o){o=JSON.parse(JSON.stringify(o));let v=+o.v||0;if(v>SCHEMA)return o;while(v<SCHEMA){o=MIG[v](o);v++;o.v=v}return o}
 let S,SBLOCK=0,_raw=null;
 try{_raw=localStorage.getItem(K);S=JSON.parse(_raw)}catch(e){if(_raw){try{localStorage.setItem(K+'.bad',_raw)}catch(_){}window.__badLoad=1}}
