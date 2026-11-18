@@ -45,3 +45,4 @@ function vf(){const o=$('#ov'),v=window.visualViewport;if(!v)return;if(o.classLi
 if(window.visualViewport){visualViewport.addEventListener('resize',vf);visualViewport.addEventListener('scroll',vf)}
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&$('#ov').classList.contains('on')&&!document.querySelector('.ak'))cl()});
 const cl=()=>{$('#ov').classList.remove('on');vf();if(window.__stale){window.__stale=0;R()}};
+let _od=0;document.addEventListener('pointerdown',e=>{_od=e.target.id=='ov'},true);document.addEventListener('click',e=>{if(e.target.id=='ov'&&_od&&$('#ov').classList.contains('on')&&!document.querySelector('.ak'))cl()});
