@@ -1,5 +1,5 @@
 /* main.js — 시작: 렌더(R)·동기화 부팅·서비스 워커 등록. 반드시 마지막에 로드 (로드 순서 9/9) */
-function R(){const ch=tab!==R.t;R.t=tab;const m=$('#m'),y=scrollY,ae=document.activeElement,FQ='button,input,select,textarea,[tabindex="0"],summary',keep={};let fi=-1,fc=0;
+function R(){const ch=tab!==R.t;R.t=tab;if(ch)try{localStorage.setItem('pubplanner1.tab',tab)}catch(e){}const m=$('#m'),y=scrollY,ae=document.activeElement,FQ='button,input,select,textarea,[tabindex="0"],summary',keep={};let fi=-1,fc=0;
 if(!ch){['qi','pq'].forEach(id=>{const e=$('#'+id);if(e)keep[id]=[e.value,e===ae,e.selectionStart,e.selectionEnd]});if(ae&&m.contains(ae)&&!ae.id){const L=[...m.querySelectorAll(FQ)];fi=L.indexOf(ae);fc=L.length}}
 m.className=ch?'in':'';m.innerHTML=({today:vToday,cal:vCal,promo:vPromo,sales:vSales,goal:vGoal,set:vSet})[tab]();
 if(!ch){for(const id in keep){const e=$('#'+id);if(!e)continue;e.value=keep[id][0];if(keep[id][1]){e.focus({preventScroll:true});try{e.setSelectionRange(keep[id][2],keep[id][3])}catch(_){}}}

@@ -24,7 +24,8 @@ let _n=Math.floor(Math.random()*100),SY=null,SYS='이 화면에서는 동기화�
 const save=()=>{stamp();S.rev=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){if(!window.__qw){window.__qw=1;toast('이 기기에 저장하지 못했습니다(저장 공간 부족). 엑셀로 백업해 두세요.')}}push()},nid=()=>Date.now()*100+(_n++%100),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),pd=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)},add=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)},today=()=>ds(new Date()),diff=s=>Math.round((pd(s)-pd(today()))/864e5),dl=s=>{const n=diff(s);return n==0?'D-day':n>0?'D-'+n:'D+'+-n};
 const pc=n=>(S.platforms.find(p=>p.n==n)||{c:'#868e96'}).c,pr=id=>S.promos.find(p=>p.id==id);
-let tab='today',cm=new Date(),sel=today();
+/* 마지막으로 연 탭을 기억(새로고침·앱 재실행 시 그대로). 저장은 main.js R() 에서 */
+let tab=(()=>{try{const t=localStorage.getItem('pubplanner1.tab');return['today','cal','promo','sales','goal','set'].includes(t)?t:'today'}catch(e){return'today'}})(),cm=new Date(),sel=today();
 cm.setDate(1);
 let _tt;
 function toast(m,undo){clearTimeout(_tt);const t=$('#ts');t.innerHTML='<span>'+esc(m)+'</span>'+(undo?'<button id=tu>되돌리기</button>':'');t.className='on';if(undo)$('#tu').onclick=()=>{t.className='';undo()};_tt=setTimeout(()=>t.className='',undo?6000:Math.max(2800,String(m).length*110))}
